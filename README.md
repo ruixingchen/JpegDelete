@@ -16,6 +16,42 @@ macOS 10.10
 
 Swift4, Xcode9.0 for code work
 
+### supported file
+
+|RAW Extension Name| Manufacturer|
+|:--|:--|
+|3fr|Hasselblad|
+|ari|Arri_Alexa|
+|arw, srf, sr2|Sony|
+|bay|Casio|
+|cri|Cintel|
+|crw, cr2|Canon|
+|ca, piiq, eip|Phase_One|
+|dcs, dcr, drf, k25, kdc|Kodak|
+|dng|Adobe|
+|erf|Epson|
+|fff|Imacon/Hasselblad, raw|
+|mef|Mamiya|
+|mdc|Minolta,, Agfa|
+|mos|Leaf|
+|mrw|Minolta,, Konica, Minolta|
+|nef, nrw|Nikon|
+|orf|Olympus|
+|pef, ptx|Pentax|
+|pxn|Logitech|
+|R3D|RED, Digital, Cinema|
+|raf|Fuji|
+|raw, rw2|Panasonic|
+|raw, rwl, dng|Leica|
+|rwz|Rawzor|
+|srw|Samsung|
+|x3f|Sigma|
+
+
+**Jpeg Extension Name:** jpg, JPG, jpeg, JPEG
+
+
+
 ### Licence
 
 MIT licence, enjoy yourself :P
