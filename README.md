@@ -6,16 +6,16 @@ a 45MP jpeg file with (large, fine) from Nikon D850 takes about 26MB, means abou
 
 so delete them, just drag the Lightroom folder in and it will be done in seconds.
 
-###usage
+### usage
 just drag the Lightroom or the picture folder in.
 
 **warning**: it starts to work immediately, no ask or alert, a backup is suggested.
 
-###requirement
+### requirement
 macOS 10.10
 
 Swift4, Xcode9.0 for code work
 
-###Licence
+### Licence
 
 MIT licence, enjoy yourself :P
