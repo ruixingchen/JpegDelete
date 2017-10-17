@@ -27,7 +27,7 @@ class DragView: NSView {
     }
 
     fileprivate func registerDrag(){
-        self.registerForDraggedTypes([NSPasteboard.PasteboardType.URL, NSPasteboard.PasteboardType.fileURL])
+        self.registerForDraggedTypes([NSPasteboard.PasteboardType.init("NSFilenamesPboardType")])
     }
 
     override func draggingEnded(_ sender: NSDraggingInfo) {

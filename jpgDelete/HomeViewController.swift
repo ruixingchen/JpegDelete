@@ -14,8 +14,12 @@ class HomeViewController: NSViewController, DragViewDelegate {
     @IBOutlet weak var infoLabel: NSTextField!
     @IBOutlet weak var indicator: NSProgressIndicator!
 
-    var jpgFileExtensions:[String] = ["jpg","JPG","jpeg","JPEG"]
-    var rawFileExtensions:[String] = [
+    var dragView:DragView {
+        return self.view as! DragView
+    }
+
+    var enabledJpgFileExtensions:[String] = ["jpg", "JPG", "jpeg", "JPEG"]
+    var enabledRawFileExtensions:[String] = [
         "3fr", //Hasselblad
         "ari", //Arri_Alexa
         "arw", "srf", "sr2", //Sony
@@ -49,16 +53,12 @@ class HomeViewController: NSViewController, DragViewDelegate {
     var numOfDeleted:Int = 0
     var startTime:TimeInterval = 0
 
-    var dragView:DragView {
-        return self.view as! DragView
-    }
-
     override func viewDidLoad() {
         super.viewDidLoad()
         dragView.dragDelegate = self
         //I dont want to rewrite the extension anymore
-        for i in 0..<rawFileExtensions.count {
-            rawFileExtensions[i] = rawFileExtensions[i].lowercased()
+        for i in 0..<enabledRawFileExtensions.count {
+            enabledRawFileExtensions[i] = enabledRawFileExtensions[i].lowercased()
         }
     }
 
@@ -66,7 +66,7 @@ class HomeViewController: NSViewController, DragViewDelegate {
         guard let propertyList = sender.draggingPasteboard().propertyList(forType: NSPasteboard.PasteboardType.init("NSFilenamesPboardType")) as? NSArray,
             let path = propertyList[0] as? String
             else {
-                print("can not get folder path")
+                print("can not get folder path dragged in")
                 return
         }
         print("the folder dragged in:\(path)")
@@ -92,58 +92,40 @@ class HomeViewController: NSViewController, DragViewDelegate {
     fileprivate func deleteJpeg(path:URL){
         let fm = FileManager.default
         var isDirectory:ObjCBool = false
-        if fm.fileExists(atPath: path.path, isDirectory: &isDirectory) {
-            if !isDirectory.boolValue {
-                print("ERROR - the path is not a directory")
-                return
-            }
-            guard let contents = try? fm.contentsOfDirectory(at: path, includingPropertiesForKeys: nil, options: .skipsHiddenFiles) else {
-                print("ERROR - get contents of path failed, path:\(path)")
-                return
-            }
-            print("content num:\(contents.count)")
-            var subDirectory:ObjCBool = false
-            for content in contents {
 
-                if !fm.fileExists(atPath: content.path, isDirectory: &subDirectory) {
-                    if jpgFileExtensions.contains(content.pathExtension.lowercased()) {
-                        //the jpg file may be deleted just ago, ignore this error
-                        continue
-                    }else{
-                        print("ERROR - the path does not exist, content:\(content)")
-                        continue
-                    }
-                }
-                if includeSubfolder && subDirectory.boolValue {
-                    deleteJpeg(path: content)
-                }else{
-                    //delete jpg if needed
-                    self.deleteJpegIfNeeded(filePath: content)
-                }
-            }
-        }else{
-            print("ERROR - the path not exists")
-        }
-    }
-
-    func deleteJpegIfNeeded(filePath:URL){
-        if !rawFileExtensions.contains(filePath.pathExtension.lowercased()) {
+        if !fm.fileExists(atPath: path.path, isDirectory: &isDirectory) {
+            print("ERROR - the path to delete does not exist")
             return
         }
-        for jpgFileExtension in jpgFileExtensions {
-            let jpgFilePath = filePath.deletingPathExtension().appendingPathExtension(jpgFileExtension)
-            var isDirectory:ObjCBool = false
-            if !FileManager.default.fileExists(atPath: jpgFilePath.path, isDirectory: &isDirectory) {
-                continue
+        if isDirectory.boolValue {
+            guard let contents = try? fm.contentsOfDirectory(at: path, includingPropertiesForKeys: nil, options: FileManager.DirectoryEnumerationOptions.skipsHiddenFiles) else {
+                print("can not enumerate content of \(path.path)")
+                return
             }
-            if !isDirectory.boolValue {
-                print("delete \(jpgFilePath)")
+            for content in contents {
+                deleteJpeg(path: content)
+            }
+        }else {
+            //it is a file
+            let rawFileExtension = path.pathExtension
+            if !self.enabledRawFileExtensions.contains(rawFileExtension.lowercased()) {
+                return
+            }
+            for i in self.enabledJpgFileExtensions {
+                let jpgFilePath = path.deletingPathExtension().appendingPathExtension(i)
+                var jpgFilePathIsDirectory:ObjCBool = false
+                if !fm.fileExists(atPath: jpgFilePath.path, isDirectory: &jpgFilePathIsDirectory) {
+                    return
+                }
+                if jpgFilePathIsDirectory.boolValue {
+                    return
+                }
+                try? fm.trashItem(at: jpgFilePath, resultingItemURL: nil)
                 numOfDeleted += 1
-                try? FileManager.default.trashItem(at: jpgFilePath, resultingItemURL: nil)
             }
+
         }
+
     }
-
-
 }
 
