@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="13196" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="14490.70" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="13196"/>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14490.70"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -619,7 +620,7 @@
                                         <menuItem title="Show Sidebar" keyEquivalent="s" id="kIP-vf-haE">
                                             <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
                                             <connections>
-                                                <action selector="toggleSourceList:" target="Ady-hI-5gd" id="iwa-gc-5KM"/>
+                                                <action selector="toggleSidebar:" target="Ady-hI-5gd" id="iwa-gc-5KM"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Enter Full Screen" keyEquivalent="f" id="4J7-dP-txa">
@@ -684,7 +685,7 @@
         <scene sceneID="R2V-B0-nI4">
             <objects>
                 <windowController id="B8D-0N-5wS" sceneMemberID="viewController">
-                    <window key="window" title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" showsToolbarButton="NO" visibleAtLaunch="NO" animationBehavior="default" id="IQv-IB-iLA">
+                    <window key="window" title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="IQv-IB-iLA">
                         <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
                         <rect key="contentRect" x="196" y="240" width="480" height="270"/>
@@ -726,9 +727,6 @@ just drag the folder in, the job will be done in seconds</string>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
                             </button>
-                            <progressIndicator hidden="YES" wantsLayer="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" maxValue="100" displayedWhenStopped="NO" bezeled="NO" indeterminate="YES" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="lI1-mz-im5">
-                                <rect key="frame" x="224" y="67" width="32" height="32"/>
-                            </progressIndicator>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="3V7-Ns-YVX">
                                 <rect key="frame" x="191" y="127" width="99" height="17"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="waiting for drag" id="JxW-6T-eYW">
@@ -741,8 +739,6 @@ just drag the folder in, the job will be done in seconds</string>
                         <constraints>
                             <constraint firstItem="3V7-Ns-YVX" firstAttribute="centerX" secondItem="m2S-Jp-Qdl" secondAttribute="centerX" id="0Mf-bu-N2C"/>
                             <constraint firstItem="zNR-lI-O0V" firstAttribute="centerX" secondItem="m2S-Jp-Qdl" secondAttribute="centerX" id="85o-4N-uN1"/>
-                            <constraint firstItem="lI1-mz-im5" firstAttribute="top" secondItem="3V7-Ns-YVX" secondAttribute="bottom" constant="28" id="Hbl-Bg-dYo"/>
-                            <constraint firstItem="lI1-mz-im5" firstAttribute="centerX" secondItem="m2S-Jp-Qdl" secondAttribute="centerX" id="IBg-cm-7yd"/>
                             <constraint firstItem="3V7-Ns-YVX" firstAttribute="centerY" secondItem="m2S-Jp-Qdl" secondAttribute="centerY" id="caT-M9-JkY"/>
                             <constraint firstItem="avd-Ch-J3m" firstAttribute="top" secondItem="zNR-lI-O0V" secondAttribute="bottom" constant="18" id="rdX-C6-Q6J"/>
                             <constraint firstItem="avd-Ch-J3m" firstAttribute="centerX" secondItem="m2S-Jp-Qdl" secondAttribute="centerX" id="xTT-vf-ZSA"/>
@@ -750,7 +746,6 @@ just drag the folder in, the job will be done in seconds</string>
                         </constraints>
                     </view>
                     <connections>
-                        <outlet property="indicator" destination="lI1-mz-im5" id="eHZ-fC-Na1"/>
                         <outlet property="infoLabel" destination="3V7-Ns-YVX" id="F41-0Q-IPX"/>
                         <outlet property="subFolderCheckBox" destination="avd-Ch-J3m" id="M1i-UJ-N0P"/>
                     </connections>

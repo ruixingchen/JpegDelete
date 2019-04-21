@@ -8,17 +8,71 @@
 
 import Cocoa
 
+extension URL {
+    enum Filestatus {
+        case isFile
+        case isDir
+        case isNot
+    }
+
+    var fileStatus: Filestatus {
+        get {
+            let filestatus: Filestatus
+            var isDir: ObjCBool = false
+            if FileManager.default.fileExists(atPath: self.path, isDirectory: &isDir) {
+                if isDir.boolValue {
+                    // file exists and is a directory
+                    filestatus = .isDir
+                }
+                else {
+                    // file exists and is not a directory
+                    filestatus = .isFile
+                }
+            }
+            else {
+                // file does not exist
+                filestatus = .isNot
+            }
+            return filestatus
+        }
+    }
+
+    var fileName:String? {
+        get {
+            let lastPathComponent = self.lastPathComponent
+            let lastDotIndex = lastPathComponent.lastIndex(of: ".")
+            if lastDotIndex == nil {
+                return lastPathComponent
+            }
+            let name = String(lastPathComponent[lastPathComponent.startIndex..<lastDotIndex!])
+            return name
+        }
+    }
+
+    var fileExtension:String {
+        let exten = self.pathExtension
+        return exten
+    }
+
+    var parentDirectory:URL {
+        return self.deletingLastPathComponent()
+    }
+
+}
+
 class HomeViewController: NSViewController, DragViewDelegate {
 
     @IBOutlet weak var subFolderCheckBox: NSButton!
     @IBOutlet weak var infoLabel: NSTextField!
-    @IBOutlet weak var indicator: NSProgressIndicator!
+
+    var numOfDeleted = 0
+    var includeSubFolder:Bool = true
 
     var dragView:DragView {
         return self.view as! DragView
     }
 
-    var enabledJpgFileExtensions:[String] = ["jpg", "JPG", "jpeg", "JPEG"]
+    var enabledJpgFileExtensions:[String] = ["jpg", "jpeg"]
     var enabledRawFileExtensions:[String] = [
         "3fr", //Hasselblad
         "ari", //Arri_Alexa
@@ -48,11 +102,6 @@ class HomeViewController: NSViewController, DragViewDelegate {
         "x3f", //Sigma
     ]
 
-    var includeSubfolder:Bool = true
-
-    var numOfDeleted:Int = 0
-    var startTime:TimeInterval = 0
-
     override func viewDidLoad() {
         super.viewDidLoad()
         dragView.dragDelegate = self
@@ -71,61 +120,63 @@ class HomeViewController: NSViewController, DragViewDelegate {
         }
         print("the folder dragged in:\(path)")
 
-        infoLabel.stringValue = "deleting..."
-        indicator.isHidden = false
-        indicator.startAnimation(nil)
-        includeSubfolder = subFolderCheckBox.state == NSControl.StateValue.on
-        numOfDeleted = 0
-        startTime = Date().timeIntervalSince1970
-
-        let url = URL.init(fileURLWithPath: path)
-        DispatchQueue.global().async {
-            self.deleteJpeg(path: url)
-            DispatchQueue.main.async {
-                self.infoLabel.stringValue = "complete, \(self.numOfDeleted) pictures deleted in \(String.init(format: "%.4f", Date().timeIntervalSince1970-self.startTime))"
-                self.indicator.stopAnimation(nil)
-                self.indicator.isHidden = true
-            }
-        }
-    }
-
-    fileprivate func deleteJpeg(path:URL){
-        let fm = FileManager.default
-        var isDirectory:ObjCBool = false
-
-        if !fm.fileExists(atPath: path.path, isDirectory: &isDirectory) {
-            print("ERROR - the path to delete does not exist")
+        let url:URL = URL(fileURLWithPath: path)
+        if url.fileStatus != .isDir {
+            infoLabel.stringValue = "wrong folder dragged in"
             return
         }
-        if isDirectory.boolValue {
-            guard let contents = try? fm.contentsOfDirectory(at: path, includingPropertiesForKeys: nil, options: FileManager.DirectoryEnumerationOptions.skipsHiddenFiles) else {
-                print("can not enumerate content of \(path.path)")
-                return
-            }
-            for content in contents {
-                deleteJpeg(path: content)
-            }
-        }else {
-            //it is a file
-            let rawFileExtension = path.pathExtension
-            if !self.enabledRawFileExtensions.contains(rawFileExtension.lowercased()) {
-                return
-            }
-            for i in self.enabledJpgFileExtensions {
-                let jpgFilePath = path.deletingPathExtension().appendingPathExtension(i)
-                var jpgFilePathIsDirectory:ObjCBool = false
-                if !fm.fileExists(atPath: jpgFilePath.path, isDirectory: &jpgFilePathIsDirectory) {
-                    return
-                }
-                if jpgFilePathIsDirectory.boolValue {
-                    return
-                }
-                try? fm.trashItem(at: jpgFilePath, resultingItemURL: nil)
-                numOfDeleted += 1
-            }
 
+        infoLabel.stringValue = "deleting..."
+        self.includeSubFolder = self.subFolderCheckBox.state == .on
+        self.numOfDeleted = 0
+        let startTime = Date().timeIntervalSince1970
+
+        DispatchQueue.global().async {
+            self.deleteInFolder(path: url)
+            DispatchQueue.main.async {
+                self.infoLabel.stringValue = "complete, \(self.numOfDeleted) jpeg pictures deleted in \(String.init(format: "%.4f", Date().timeIntervalSince1970-startTime))"
+            }
         }
 
     }
+
+    fileprivate func deleteInFolder(path:URL) {
+        let fm = FileManager.default
+        let contents:[URL] = try! fm.contentsOfDirectory(at: path, includingPropertiesForKeys: nil, options: [FileManager.DirectoryEnumerationOptions.skipsHiddenFiles, .skipsPackageDescendants])
+        contents.forEach { (url) in
+
+            switch url.fileStatus {
+            case .isDir:
+                if self.includeSubFolder {
+                    deleteInFolder(path: url)
+                }
+            case .isFile:
+                //file
+                deletePicture(path: url, siblins: contents)
+            default:
+                break
+            }
+        }
+    }
+
+    fileprivate func deletePicture(path:URL, siblins:[URL]) {
+        guard let fileName = path.fileName else {return}
+        let exten = path.fileExtension
+
+        if self.enabledJpgFileExtensions.contains(where: {$0.compare(exten, options: .caseInsensitive, range: nil, locale: nil) == .orderedSame}) {
+            //this is a jpg file
+            for i in siblins {
+                if self.enabledRawFileExtensions.contains(where: {$0.lowercased() == i.fileExtension.lowercased()}) {
+                    if let lowerFileName = i.fileName?.lowercased(), lowerFileName == fileName.lowercased() {
+                        //this is the releted raw file, so the raw file exists
+                        try! FileManager.default.trashItem(at: path, resultingItemURL: nil)
+                        self.numOfDeleted += 1
+                    }
+                }
+
+            }
+        }
+    }
+
 }
 
